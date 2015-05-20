@@ -3,29 +3,24 @@
 #include <stdio.h>
 #include "class_Memory.h"
 
+int main1(int argc, char **argv);
 
 int main(int argc, char **argv){
 
-	Memory mem(8);
-	printf("starting..\n");
-	mem.printField();
+	bool memory = true;
+	bool graphic = false;
 
-	while(mem.getOngoing()){
-/*		int value = 0;
-		printf("Enter Value: \n");
-		scanf("%d",&value);
-		if(value>20)
-			return 0;
-		if(value<0||value>15)
-			continue;
+	if(graphic)
+		main1(argc, argv);
 	
-	//	mem.printField();*/
-			mem.make_turn();
-
-
+	if(memory){
+	Memory mem(EASY);
+	printf("starting..\n");
+	mem.play();
 	}
 
-
-
-
 }
+
+
+
+
