@@ -1,4 +1,4 @@
-
+#pragma once
 #ifndef CLASS_MEMORY_PROJECT
 #define CLASS_MEMORY_PROJECT
 
@@ -14,6 +14,8 @@ enum difficulty {EASY, MEDIUM, HARD};
 
 class Memory{
 
+
+	difficulty current_div;
 	bool ongoing;		//Solage das spiel nicht beendet wird, auf true gesetzt
 	int field_width;	//breite des Spielfelds
 	int field_height;	//höhe des Spielfelds
@@ -33,6 +35,8 @@ class Memory{
 	void deleteData(); //gibt alles frei
 	void printField(); //gibt das Feld aus
 	
+	
+
 	/*Card Functions */
 
 	void getCoordinates (int cardNo);  // wandelt die Kartennummer in die Koordinaten um
@@ -48,6 +52,11 @@ class Memory{
 
 public:
 	Memory(difficulty dif);
+	difficulty getCurrentDif(){return current_div;};
+	int getHeight(){return field_height;};
+	int getWidth(){return field_width;};
+	int getMaxCards(){return MAXCARDS;};
+	int getCardType(int x, int y){return field[x][y][0];};
 	~Memory();
 	
 	

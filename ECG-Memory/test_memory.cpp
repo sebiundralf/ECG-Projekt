@@ -7,14 +7,14 @@ int main1(int argc, char **argv);
 
 int main(int argc, char **argv){
 
-	bool memory = true;
-	bool graphic = false;
+	bool memory = false;
+	bool graphic = true;
 
 	if(graphic)
 		main1(argc, argv);
 	
 	if(memory){
-	Memory mem(EASY);
+	Memory mem(MEDIUM);
 	printf("starting..\n");
 	mem.play();
 	}

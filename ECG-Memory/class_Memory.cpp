@@ -20,12 +20,14 @@ void Memory::startNewGame(difficulty dif){
 			field_width = 3;
 			break;
 
-	case 1: field_height = 4;
-			field_width = 3;
+	case 1: field_height = 3;
+			field_width = 4;
 			break;
 
-	case 2: field_height = field_width = 4;
+	case 2: field_height = 4;
+			field_width = 4 ;
 			break;
+
 	default: printf("ERROR");
 		break;
 	}

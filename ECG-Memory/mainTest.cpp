@@ -26,9 +26,35 @@
 
 int main1(int argc, char **argv) 
 {  
+	int sv = 0;
+	printf("Difficulty? 0 1 or 2:  ");
+	scanf("%d", &sv);
+	difficulty dif;
+	switch(sv){
+	case 0: 
+		dif = EASY;
+		break;
+	case 1: 
+		dif =  MEDIUM;
+		break;
+	case 2: 
+		dif = HARD;
+		break;
+	default:
+		dif =  EASY;
+		break;
 
-	class_openGL op();
+	}
 
+
+	Memory *mem = new Memory(dif);
+	class_openGL op = class_openGL(mem);
+
+	op.start(argc,argv);
+
+
+
+	delete(mem);
 
 
 
