@@ -1,6 +1,6 @@
 #include "class_Memory.h"
 
-int debug = 1;
+int debug = 0;
 
 
 	/* Utility Functions */
@@ -10,6 +10,7 @@ void Memory::startNewGame(difficulty dif){
 
 	
 	pairsfound = 0;
+	current_div = dif;
 //	dif = HARD;
 
 	//printf("DIF: %d, %s\n",dif,dif);

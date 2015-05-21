@@ -51,11 +51,17 @@ static int r;
 static int mousex;
 static int mousey;
 static int mousePress;
+static int mousePressX;
+static int mousePressY;
+static float clickMaskX[4][2];
+static float clickMaskY[4][2];
+static int testv;
 
 
 
 float factor (0.8);
-static float coordsHARD[4]= {-3*factor,-1*factor,1*factor,3*factor};
+
+static float ***coords;
 static Memory * memObj;
 
 
@@ -71,6 +77,8 @@ class_openGL::class_openGL(Memory*mem)
 	r = 1.0;
 	mousex = 0;
 	mousey = 0;
+	mousePressX = 0;
+	mousePressY = 0;
 	mousePress = 0;
 	memObj = mem;
 	dif = mem->getCurrentDif();
@@ -78,13 +86,18 @@ class_openGL::class_openGL(Memory*mem)
 
 
 
+
 }
 
 void class_openGL::vInitialize(){
+
+	
+	int h = memObj->getHeight();
+		int w = memObj->getWidth();
+
 	for(int i = 0; i < 5; i++){
 
-		int h = memObj->getHeight();
-		int w = memObj->getWidth();
+		
 				int**temp1;
 				float**temp2;
 	
@@ -120,9 +133,63 @@ void class_openGL::vInitialize(){
 		default:;
 		}
 	}
+		float step = 1.5;
+		float tempx;
+		float tempy;
+
+	coords = (float***) malloc(sizeof(float**) * h);
+
+	for(int i = 0; i < h; i++)
+		coords[i] = (float**) malloc(sizeof(float*)* w);
+
+	for(int i = 0; i < h; i++){
+		for(int j = 0; j < w; j++){
+			coords[i][j] = (float*) malloc(sizeof(float)* 2);
+			tempx = coords[i][j][0] = ((j) * step) -  ((step * (w-1)) /2 );
+			tempy = coords[i][j][1] = (((i) * step) -  ((step * (h-1)) /2 )) * -1;
+		
+			//printf("co %d/%d: %2.2f/%2.2f | ", i, j, tempx, tempy);
+		}
+	//	printf("\n"); 
+	}
+
+	switch(dif)
+	{
+	case EASY: 
+
+	case MEDIUM:
+
+	case HARD:
+		{float tempMask[4][2] =  {{85,232},
+							{246,393},
+							{407,554},
+							{568,715}};
+		
+		for(int i = 0; i < 4; i++){
+			clickMaskX[i][0] = clickMaskY[i][0] = tempMask[i][0];
+			clickMaskX[i][1] = clickMaskY[i][1] = tempMask[i][1];
+		}
+		}
+	//	printf("clickMask initialisiert\n");
+		break;
+
+
+	default:
+		printf("NOPE\n");
+		break;
+
+
+
+
+
+
+	}
+
 }
 
 void vDelete(){
+		int h = memObj->getHeight();
+		int w = memObj->getWidth();
 
 	for(int i = 0; i < 4; i++){
 	
@@ -147,21 +214,19 @@ void vDelete(){
 		}
 
 
-		int h = memObj->getHeight();
-		int w = memObj->getWidth();
 				
 		if(i<2){
 	
 
 		
-			for(int j = 0; i < 4; j++)
+			for(int j = 0; i < h; j++)
 				 free(temp[j]);
 
 
 			free(temp);
 
 		}else {
-			for(int j = 0; i < 4; j++)
+			for(int j = 0; i < h; j++)
 				free(temp2[j]);
 
 
@@ -169,6 +234,15 @@ void vDelete(){
 
 		}
 	}
+
+	for(int i = 0; i < h; i++){
+		for(int j = 0; j < w; j++)
+			free(coords[i][j]);
+
+		free(coords[i]);
+	}
+	
+	free(coords);
 }
 
 
@@ -222,6 +296,7 @@ void class_openGL::keyPressed(unsigned char key, int x, int y)
 		rotating_speed = 20;
 		break;
 	case 'f':
+		printf("Window size: %d x %d", glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
 		glutPostRedisplay();
 	case 'q':
 		if(q==0)
@@ -269,7 +344,7 @@ void class_openGL::drawCard(int background){
 
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glBindTexture(GL_TEXTURE_2D, cardfront[background]);
+	glBindTexture(GL_TEXTURE_2D, cardback);
 
 	glBegin(GL_QUADS);
 	//glColor4f(1.0,1.0,1.0,0);
@@ -380,7 +455,7 @@ void class_openGL::init(int width, int height)
 	str.append("cardfront");
 	str.append(std::to_string(k+1));
 	str.append(".tga");
-	std::cout << str << std::endl;
+	//std::cout << str << std::endl;
 
 	char*  str2 = (char*) str.c_str();
 
@@ -392,7 +467,7 @@ void class_openGL::init(int width, int height)
 		return;
 	}
 
-	printf("CardBack: width: %d, height: %d\n, CardFront: width: %d, height: %d\n", info->width, info->height, info_back->width, info_back->height);
+	//printf("CardBack: width: %d, height: %d\n, CardFront: width: %d, height: %d\n", info->width, info->height, info_back->width, info_back->height);
 
 
 	mode = info_back->pixelDepth / 8;  // will be 3 for rgb, 4 for rgba
@@ -455,17 +530,20 @@ void class_openGL::display()
 	glLightfv(GL_LIGHT0, GL_SPECULAR, light_ambient);
 	glEnable(GL_LIGHT0);
 
+	float coordX;
+	float coordY;
 
 	for(int i = 0; i < memObj->getHeight(); i++){
 		for(int j = 0; j<memObj->getWidth(); j++){
 
 			glPushMatrix();
-
-			glTranslatef(coordsHARD[j], coordsHARD[i], 0);
+			coordX = coords[i][j][0];
+			coordY = coords[i][j][1];
+			glTranslatef(coordX,coordY , 0);
 
 
 			glRotatef(rotation_y[i][j], 0, 1, 0);
-			if(found[i][j]==0)
+			//if(found[i][j]==0)
 				drawCard(memObj->getCardType(i,j));
 
 			/*
@@ -519,27 +597,54 @@ void class_openGL::timer(int value)
 
 void class_openGL::mouse(int button, int state, int x, int y)
 {
+	float x1;
+	float x2;
+	float y1;
+	float y2;
+
 	switch (button) {
 	case GLUT_LEFT_BUTTON:    /* spin scene around */
 		if (state == GLUT_DOWN){
+			testv = 0;
+			for(int i = 0; i < memObj->getHeight(); ++i){
+				for(int j = 0; j < memObj->getWidth(); ++j){
+					++testv;
+					x1 = (clickMaskX[j][0] * glutGet(GLUT_WINDOW_HEIGHT)) / 800 + (glutGet(GLUT_WINDOW_WIDTH)-glutGet(GLUT_WINDOW_HEIGHT))/2;
+					x2 = (clickMaskX[j][1] * glutGet(GLUT_WINDOW_HEIGHT)) / 800 +  (glutGet(GLUT_WINDOW_WIDTH)-glutGet(GLUT_WINDOW_HEIGHT))/2;
+					y1 = clickMaskY[i][0] * glutGet(GLUT_WINDOW_HEIGHT)/ 800;
+					y2 = clickMaskY[i][1] * glutGet(GLUT_WINDOW_HEIGHT) / 800;
+				
 
-			if(x>75 && x<265 && y > 145 && y < 335){
-				mousePress = 2;
+					if(x >= x1 &&  x<= x2 && y >= y1 && y <= y2  ){
+						printf("Values: x = %2.1f - %2.1f, y = %2.1f, %2.1f\n", x1, x2, y1, y2);
+						printf("x = %d, y = %d\n", j, i);
+						printf("Calculation: cmx1 j %2.0f, cmx2 j %2.0f, cmy1 i %2.0f, cmy2 i %2.0f, wh %d, ww %d\n", clickMaskX[j][0], clickMaskX[j][1], clickMaskY[i][0], clickMaskY[i][1],  glutGet(GLUT_WINDOW_HEIGHT), glutGet(GLUT_WINDOW_WIDTH));
+
+						mousePressX = j;
+						mousePressY = i;
+						mousePress = 1;
+						break;
+					}
+					if(mousePress!=0)
+						break;
+				}
+				if(mousePress!=0)
+						break;
 
 			}
 			printf("mouse x = %d, mouse y = %d\n", x, y);
-			if(x>370 && x<560 && y > 145 && y < 335){
-				mousePress = 1;
-
-			}
-
+			
+			
+			
 		} else if (state == GLUT_UP){
 			//printf("Mouse Press = %d\n",mousePress);
-			if(mousePress!=0)
-				animating[mousePress-1][0] = 1;
-			mousePress=0;
-
-
+			if(mousePress!=0){
+				animating[mousePressY][mousePressX] = 1;
+			
+			memObj->turn_card(testv-1);
+			memObj->printField();
+			}
+				mousePressX=mousePressY=mousePress=0;
 
 		}
 	}
@@ -551,16 +656,17 @@ void class_openGL::start(int argc, char **argv){
 
 	glutInit(&argc, argv);  
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH);  
-	glutInitWindowSize(800, 600);  
+	glutInitWindowSize(800, 800);  
 	glutInitWindowPosition(0, 0);  
 	window = glutCreateWindow("Memory");  
 	glutDisplayFunc(&display);  
 	glutReshapeFunc(&resize);
 	glutKeyboardFunc(&keyPressed);
 
-	init(800, 600);
+	init(800, 800);
 	glutMouseFunc(mouse);
 	glutTimerFunc(15, timer, 1);
+	glutFullScreen();
 	glutMainLoop();  
 
 }

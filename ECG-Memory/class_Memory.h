@@ -33,9 +33,9 @@ class Memory{
 	void startNewGame(difficulty dif); //initialisert das spiel
 	void initialize_field();	//initialisiert das Feld
 	void deleteData(); //gibt alles frei
-	void printField(); //gibt das Feld aus
+
 	
-	
+public:	
 
 	/*Card Functions */
 
@@ -48,9 +48,9 @@ class Memory{
 
 	
 	
+	/* UTILITY */
 
-
-public:
+		void printField(); //gibt das Feld aus
 	Memory(difficulty dif);
 	difficulty getCurrentDif(){return current_div;};
 	int getHeight(){return field_height;};
