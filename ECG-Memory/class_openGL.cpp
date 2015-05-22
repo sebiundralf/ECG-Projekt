@@ -56,7 +56,26 @@ static int mousePressY;
 static float clickMaskX[4][2];
 static float clickMaskY[4][2];
 static int testv;
+static int animation = 0;
+static bool light_enabled = true;
+static int hover[4][4] = {{0,0,0,0},
+							{0,0,0,0},
+							{0,0,0,0},
+							{0,0,0,0}};
 
+GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+GLfloat mat_shininess[] = { 5.0 };
+GLfloat light_position[3][4] = {  { 0.0, 0.0, 1.0, 0.0 },
+								{ 1.0, 0.0, 1.0, 0.0 },
+							    { 0.0, 1.0, 1.0, 0.0 }  };
+
+GLfloat light_emission[] = {0.6,0.6,0.6,0.0};
+GLfloat light_emission2[] = {0.4,0.4,1.0,1.0};
+GLfloat light_emission3[] = {1.0,1.0,1.0,1.0};
+
+  GLfloat light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
+  GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+  GLfloat light_ambient[] = { 1.0, 1.0, 1.0, 1.0 };
 
 
 float factor (0.8);
@@ -216,29 +235,20 @@ void vDelete(){
 
 				
 		if(i<2){
-	
-
-		
 			for(int j = 0; i < h; j++)
 				 free(temp[j]);
-
-
 			free(temp);
 
 		}else {
 			for(int j = 0; i < h; j++)
 				free(temp2[j]);
-
-
 			free(temp2);
-
 		}
 	}
 
 	for(int i = 0; i < h; i++){
 		for(int j = 0; j < w; j++)
 			free(coords[i][j]);
-
 		free(coords[i]);
 	}
 	
@@ -287,16 +297,19 @@ void class_openGL::keyPressed(unsigned char key, int x, int y)
 
 		break;*/
 	case '2':
-		rotating_speed = 2;
+		rotating_speed = 1;
 		break;
 	case '5':
 		rotating_speed = 5;
 		break;
 	case '0':
-		rotating_speed = 20;
+		rotating_speed = 15;
 		break;
 	case 'f':
 		printf("Window size: %d x %d", glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+		for(int i = 0; i < memObj->getHeight(); i++)
+			for(int j = 0; j < memObj->getWidth(); j++)
+			//	printf("y=%d x= %d anim= %2.2f\n",i,j,rotation_y[i][j]);
 		glutPostRedisplay();
 	case 'q':
 		if(q==0)
@@ -322,6 +335,13 @@ void class_openGL::keyPressed(unsigned char key, int x, int y)
 		else
 			r=1.0;
 		break;
+	case 'l':
+		light_enabled = !light_enabled;
+		if(light_enabled)
+			  glEnable(GL_LIGHTING);
+		else
+			  glDisable(GL_LIGHTING);
+		break;
 	default:
 		break;
 	}
@@ -340,31 +360,51 @@ void class_openGL::reportGLError(const char * msg)
 }
 
 
-void class_openGL::drawCard(int background){
+void class_openGL::drawCard(int background, int x, int y){
+		float cardsize = 0.7;
+
+
+	if(hover[y][x]==1&&rotation_y[y][x]==0)
+	 glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, light_emission2);
+	else
+		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, light_emission);
+
+
+	glPushMatrix();
+
+
 
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glBindTexture(GL_TEXTURE_2D, cardback);
 
+
+		glTranslatef(0, 0, 0.01f);
+
 	glBegin(GL_QUADS);
 	//glColor4f(1.0,1.0,1.0,0);
 
-	float cardsize = 0.7;
+
 
 	// front face
-	glTexCoord2f(0.0f, 0.0f); glVertex3f(-cardsize, -cardsize,  0.01f);
-	glTexCoord2f(1.0f, 0.0f); glVertex3f( cardsize, -cardsize,  0.01f);
-	glTexCoord2f(1.0f, 1.0f); glVertex3f( cardsize,  cardsize,  0.01f);
-	glTexCoord2f(0.0f, 1.0f); glVertex3f(-cardsize,  cardsize,  0.01f);
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(-cardsize, -cardsize,  0.00f);
+	glTexCoord2f(1.0f, 0.0f); glVertex3f( cardsize, -cardsize,  0.00f);
+	glTexCoord2f(1.0f, 1.0f); glVertex3f( cardsize,  cardsize,  0.00f);
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(-cardsize,  cardsize,  0.00f);
 
 	glEnd();
 
 	glDisable(GL_TEXTURE_2D);
 
+	glPopMatrix();
+		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, light_emission);
+
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glBindTexture(GL_TEXTURE_2D, cardfront[background]);
 
+
+		glRotatef(180, 0, 1, 0);
 	glBegin(GL_QUADS);
 
 	// back face
@@ -395,6 +435,27 @@ void class_openGL::init(int width, int height)
 	char pfad[256]; //hier wird der Programmpfad gespeichert
 	rotation_x = rotation_z = 0.0;
 
+	  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
+  glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
+  glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, light_emission);
+
+  for(int i = 1; i < 3; i++){
+
+  //glLightfv(GL_LIGHT0+i, GL_DIFFUSE, light_diffuse);
+ // glLightfv(GL_LIGHT0+i, GL_SPECULAR, light_specular);
+  glLightfv(GL_LIGHT0+i, GL_POSITION, light_position[i]);
+    glLightfv(GL_LIGHT0+i, GL_AMBIENT, light_ambient);
+
+	  glEnable(GL_LIGHT0+i);
+  }
+
+  
+  glEnable(GL_LIGHTING);
+
+  glEnable(GL_DEPTH_TEST);
+
+
+
 	for(int i = 0; i < memObj->getHeight(); i++)
 		for(int j = 0; j<memObj->getWidth(); j++)
 			rotation_y[i][j] = animating[i][j] = rotation_progress[i][j] =found[i][j] = temp[i][j]= 0;
@@ -408,7 +469,7 @@ void class_openGL::init(int width, int height)
 	resize(width, height);
 
 
-	info = tgaLoad("Cardback.tga");
+	info = tgaLoad("textures/Cardback.tga");
 
 	if (info->status != TGA_OK) {
 		fprintf(stderr, "error loading texture image: %d\n", info->status);
@@ -452,7 +513,7 @@ void class_openGL::init(int width, int height)
 	//char* text = "cardfront" + k + ".tga";
 
 	std::string str;
-	str.append("cardfront");
+	str.append("textures/cardfront");
 	str.append(std::to_string(k+1));
 	str.append(".tga");
 	//std::cout << str << std::endl;
@@ -501,9 +562,11 @@ void class_openGL::init(int width, int height)
 
 void class_openGL::display()
 {
-	GLfloat light_ambient[] = { q, w, e , r};
+
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  
 	glLoadIdentity();  
+
 
 
 
@@ -526,15 +589,18 @@ void class_openGL::display()
 	// glRotatef(rotation_x, 1, 0, 0);
 	// glRotatef(rotation_y, 0, 1, 0);
 	//  glRotatef(rotation_z, 0, 0, 1);
-
+/*
 	glLightfv(GL_LIGHT0, GL_SPECULAR, light_ambient);
-	glEnable(GL_LIGHT0);
+	glEnable(GL_LIGHT0);*/
 
 	float coordX;
 	float coordY;
 
 	for(int i = 0; i < memObj->getHeight(); i++){
 		for(int j = 0; j<memObj->getWidth(); j++){
+			
+			if(rotation_y[i][j]>=360)
+				rotation_y[i][j] = rotation_y[i][j] - 360;
 
 			glPushMatrix();
 			coordX = coords[i][j][0];
@@ -543,8 +609,12 @@ void class_openGL::display()
 
 
 			glRotatef(rotation_y[i][j], 0, 1, 0);
+
+		/*	if(i==1 && j==3)
+				glRotatef(animation+=5,0,1,0);*/
+
 			//if(found[i][j]==0)
-				drawCard(memObj->getCardType(i,j));
+				drawCard(memObj->getCardType(i,j),j,i);
 
 			/*
 			glEnable (GL_BLEND);
@@ -553,6 +623,8 @@ void class_openGL::display()
 
 
 			glPopMatrix();
+
+			
 
 			if (animating[i][j]) {
 				if(rotation_progress[i][j] == 180)
@@ -595,6 +667,35 @@ void class_openGL::timer(int value)
 	glutTimerFunc(15, class_openGL::timer, 1);
 }
 
+void class_openGL::mouseMotion(int x, int y){
+	
+	float x1;
+	float x2;
+	float y1;
+	float y2;
+
+
+	for(int i = 0; i < memObj->getHeight(); ++i){
+				for(int j = 0; j < memObj->getWidth(); ++j){
+					++testv;
+					x1 = (clickMaskX[j][0] * glutGet(GLUT_WINDOW_HEIGHT)) / 800 + (glutGet(GLUT_WINDOW_WIDTH)-glutGet(GLUT_WINDOW_HEIGHT))/2;
+					x2 = (clickMaskX[j][1] * glutGet(GLUT_WINDOW_HEIGHT)) / 800 +  (glutGet(GLUT_WINDOW_WIDTH)-glutGet(GLUT_WINDOW_HEIGHT))/2;
+					y1 = clickMaskY[i][0] * glutGet(GLUT_WINDOW_HEIGHT)/ 800;
+					y2 = clickMaskY[i][1] * glutGet(GLUT_WINDOW_HEIGHT) / 800;
+				
+
+					if(x >= x1 &&  x<= x2 && y >= y1 && y <= y2  ) {
+						hover[i][j] = 1;
+						//printf("hover.");
+					}
+					else
+						hover[i][j] = 0;
+
+				}
+	}
+
+}
+
 void class_openGL::mouse(int button, int state, int x, int y)
 {
 	float x1;
@@ -616,10 +717,10 @@ void class_openGL::mouse(int button, int state, int x, int y)
 				
 
 					if(x >= x1 &&  x<= x2 && y >= y1 && y <= y2  ){
-						printf("Values: x = %2.1f - %2.1f, y = %2.1f, %2.1f\n", x1, x2, y1, y2);
+					/*	printf("Values: x = %2.1f - %2.1f, y = %2.1f, %2.1f\n", x1, x2, y1, y2);
 						printf("x = %d, y = %d\n", j, i);
 						printf("Calculation: cmx1 j %2.0f, cmx2 j %2.0f, cmy1 i %2.0f, cmy2 i %2.0f, wh %d, ww %d\n", clickMaskX[j][0], clickMaskX[j][1], clickMaskY[i][0], clickMaskY[i][1],  glutGet(GLUT_WINDOW_HEIGHT), glutGet(GLUT_WINDOW_WIDTH));
-
+						*/
 						mousePressX = j;
 						mousePressY = i;
 						mousePress = 1;
@@ -632,7 +733,7 @@ void class_openGL::mouse(int button, int state, int x, int y)
 						break;
 
 			}
-			printf("mouse x = %d, mouse y = %d\n", x, y);
+			//printf("mouse x = %d, mouse y = %d\n", x, y);
 			
 			
 			
@@ -642,7 +743,7 @@ void class_openGL::mouse(int button, int state, int x, int y)
 				animating[mousePressY][mousePressX] = 1;
 			
 			memObj->turn_card(testv-1);
-			memObj->printField();
+			//memObj->printField();
 			}
 				mousePressX=mousePressY=mousePress=0;
 
@@ -654,6 +755,7 @@ void class_openGL::mouse(int button, int state, int x, int y)
 
 void class_openGL::start(int argc, char **argv){
 
+	printf("Starting openGL ..\n");
 	glutInit(&argc, argv);  
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH);  
 	glutInitWindowSize(800, 800);  
@@ -665,8 +767,9 @@ void class_openGL::start(int argc, char **argv){
 
 	init(800, 800);
 	glutMouseFunc(mouse);
+	glutPassiveMotionFunc(mouseMotion);
 	glutTimerFunc(15, timer, 1);
-	glutFullScreen();
+	//glutFullScreen();
 	glutMainLoop();  
 
 }

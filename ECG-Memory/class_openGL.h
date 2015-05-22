@@ -35,6 +35,7 @@
 class class_openGL{
 
 		void vInitialize();
+		
 
  public: 
  class_openGL(Memory * mem);
@@ -42,13 +43,13 @@ class class_openGL{
 static void reportGLError(const char * msg);
  static void resize(int width, int height);
  static void keyPressed(unsigned char key, int x, int y);
- static void drawCard(int background);
+ static void drawCard(int background, int x, int y);
 static void init(int width, int height) ;
  static void display();
  static void timer(int value);
  static void mouse(int button, int state, int x, int y);
  static void start(int argc, char **argv);
-
+ static void mouseMotion(int x, int y);
  
 
 

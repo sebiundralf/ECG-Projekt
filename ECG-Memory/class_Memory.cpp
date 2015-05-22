@@ -1,6 +1,6 @@
 #include "class_Memory.h"
 
-int debug = 0;
+int debug =1;
 
 
 	/* Utility Functions */
@@ -42,31 +42,31 @@ void Memory::startNewGame(difficulty dif){
 	int cards_set = 0;
 	int pointed_card = 0;
 
-	for(int i = 0; i < field_height; i++){
+	/*for(int i = 0; i < field_height; i++){
 		printf(" | ");
 		for(int j = 0; j < field_width; j++)
 			printf("%2d | ", field[i][j][0]);
 		
 		printf("\n");
-	}
+	}*/
 
 	int randomNummer;
-	unsigned int seed;
+	unsigned int seed = (unsigned int)time(NULL);
 	int breakpoint = 0;
 	for(int i = 0; i < ((MAXCARDS+1)/2); i++){
 		cards_set = 0;
 		breakpoint = 0;
 		while(cards_set<2){
 			++breakpoint;
-			seed = (unsigned int)time(NULL)	;
+			
 			srand(seed);
 			randomNummer = rand();
 			if(cards_set == 0)
 				;//printf("Random Nummer: %d || Seed: %d \n", randomNummer, seed);
 			else
 				++randomNummer;
-
-			pointed_card = ((pointed_card)+ rand() + 7) % (field_height * field_width);
+			seed = (unsigned int) randomNummer;
+			pointed_card = (((pointed_card)+ rand()) % (field_height * field_width)) ;
 			
 			getCoordinates(pointed_card);
 	
@@ -96,6 +96,7 @@ void Memory::startNewGame(difficulty dif){
 		}
 	}
 
+//	printField();
 }
 
 void Memory::initialize_field(){
@@ -226,7 +227,7 @@ void Memory::checkCorrect(int values[2]){
 			turn_card(values[i]);
 	}
 
-	printField();
+	//printField();
 
 }
 
@@ -238,10 +239,11 @@ void Memory::checkCorrect(int values[2]){
 
 Memory::Memory(difficulty dif){
 
-char* tempNames[8]	= {"Hund", "Katze", "Pferd", "Blume", "Haus", "Computer", "Mann", "Frau"};
+char* tempNames[8]	= {"street", "city", "hill", "play", "window", "sunrise", "camp", "hotel"};
 cardback = "#########";
 ongoing = true;
 field = NULL;
+printf("Setting up Memory..\n");
 
 	for(int i = 0; i < 8; i++)
 		cardnames[i] = tempNames[i];
@@ -262,7 +264,7 @@ void Memory::play(){
 	int turn_return;
 	int turns = 0;
 
-	printField();
+	//printField();
 
 	while(ongoing){
 		printf("Enter Value: \n");
@@ -282,7 +284,7 @@ void Memory::play(){
 			continue;
 		}
 
-		printField();
+		//printField();
 		turns++;
 
 		if(turns>1){
