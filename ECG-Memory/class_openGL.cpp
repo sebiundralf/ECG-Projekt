@@ -43,9 +43,13 @@ static int** temp;
 
 static difficulty dif;
 
-static   int rotating_speed;
+static int selectedCorrect=0;
+static int currentAnimating = 0;
+static int turn = 0;
+static int selectedCards[2] = {0,0};
+static int rotating_speed;
 static int q;
-static  int w;
+static int w;
 static int e ;
 static int r;
 static int mousex;
@@ -71,18 +75,17 @@ GLfloat light_position[3][4] = {  { 0.0, 0.0, 1.0, 0.0 },
 
 GLfloat light_emission[] = {0.6,0.6,0.6,0.0};
 GLfloat light_emission2[] = {0.4,0.4,1.0,1.0};
-GLfloat light_emission3[] = {1.0,1.0,1.0,1.0};
+GLfloat light_emission3[] = {0.6,0.6,1.0,1.0};
 
-  GLfloat light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
-  GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-  GLfloat light_ambient[] = { 1.0, 1.0, 1.0, 1.0 };
+  GLfloat light_diffuse[] = { 8.0, 8.0,8.0, 1.0 };
+  GLfloat light_specular[] = { 8.0, 8.0, 8.0, 1.0 };
+  GLfloat light_ambient[] = { 7.0,7.0,7.0, 1.0 };
 
 
 float factor (0.8);
 
 static float ***coords;
 static Memory * memObj;
-
 
 
 
@@ -102,10 +105,6 @@ class_openGL::class_openGL(Memory*mem)
 	memObj = mem;
 	dif = mem->getCurrentDif();
 	vInitialize();
-
-
-
-
 }
 
 void class_openGL::vInitialize(){
@@ -196,14 +195,7 @@ void class_openGL::vInitialize(){
 	default:
 		printf("NOPE\n");
 		break;
-
-
-
-
-
-
 	}
-
 }
 
 void vDelete(){
@@ -281,8 +273,11 @@ void class_openGL::keyPressed(unsigned char key, int x, int y)
 	case 'a':
 		for(int i = 0; i < memObj->getHeight();++i){
 			for(int j=0; j < memObj->getWidth();j++){
-				animating[i][j] = 1;
-
+				if(animating[i][j] != 1){
+					animating[i][j] = 1;
+					currentAnimating++;
+				};
+			
 			}
 		}
 
@@ -306,17 +301,14 @@ void class_openGL::keyPressed(unsigned char key, int x, int y)
 		rotating_speed = 15;
 		break;
 	case 'f':
-		printf("Window size: %d x %d", glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+		printf("Window size: %d x %d\n", glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+		
 		for(int i = 0; i < memObj->getHeight(); i++)
 			for(int j = 0; j < memObj->getWidth(); j++)
 			//	printf("y=%d x= %d anim= %2.2f\n",i,j,rotation_y[i][j]);
 		glutPostRedisplay();
 	case 'q':
-		if(q==0)
-			q = 10;
-		else
-			q = 0;
-		break;
+		memObj->printStates();
 	case 'w':
 		if(w==0.5)
 			w = 5.0;
@@ -360,15 +352,68 @@ void class_openGL::reportGLError(const char * msg)
 }
 
 
+void class_openGL::drawBorder(float cardsize){
+
+	
+		/* if found */
+
+	
+
+	float thickness = 0.04f;
+
+	glPushMatrix();
+
+	
+
+
+	glBegin(GL_QUADS);
+
+
+	// back face
+
+	glTexCoord2f(1.0f, 0.0f); glVertex3f(-(cardsize+(thickness)), -(cardsize+(thickness)), -0.00f);
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(-(cardsize+(thickness)),  (cardsize+(thickness)), -0.00f);
+	glTexCoord2f(0.0f, 1.0f); glVertex3f( (cardsize+(thickness)),  (cardsize+(thickness)), -0.00f);
+	glTexCoord2f(0.0f, 0.0f); glVertex3f( (cardsize+(thickness)), -(cardsize+(thickness)), -0.00f);
+
+	glEnd();
+
+	glColor3f(1.0f,1.0f,01.0f);
+		
+	glPopMatrix();
+
+}
+
 void class_openGL::drawCard(int background, int x, int y){
 		float cardsize = 0.7;
+		bool vdrawBorder = false;
 
 
-	if(hover[y][x]==1&&rotation_y[y][x]==0)
-	 glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, light_emission2);
-	else
+	if(hover[y][x]==1 && rotation_y[y][x]==0 &&  turn<2){
+		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, light_emission2);
+		glColor3f(1.0f,0.0f,0.0f);
+		vdrawBorder = true;
+	}
+	else{
 		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, light_emission);
+	}
 
+	
+	if(temp[y][x]==1){
+//	 glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, light_emission3);
+	 		glColor3f(0.0f,1.0f,0.0f);
+		vdrawBorder = true;
+
+	}
+
+	if(hover[y][x]==1)
+		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, light_emission2);
+
+
+	if(vdrawBorder)
+		drawBorder(cardsize);
+
+	
 
 	glPushMatrix();
 
@@ -397,7 +442,10 @@ void class_openGL::drawCard(int background, int x, int y){
 	glDisable(GL_TEXTURE_2D);
 
 	glPopMatrix();
-		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, light_emission);
+
+
+	glPushMatrix();
+		glTranslatef(0, 0, -0.01f);
 
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -418,8 +466,18 @@ void class_openGL::drawCard(int background, int x, int y){
 
 	glDisable(GL_TEXTURE_2D);
 
+	
 
 
+	glPopMatrix();
+	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, light_emission);
+
+
+
+
+		
+
+	
 }
 
 
@@ -562,8 +620,45 @@ void class_openGL::init(int width, int height)
 
 void class_openGL::display()
 {
+	
+	if(currentAnimating==0 && turn>=2){
 
 
+	if(turn==2){
+
+		#ifdef _WIN32
+		Sleep(100);
+		#endif
+				selectedCorrect = memObj->checkCorrect(selectedCards);
+				++turn;
+				for(int i = 0; i < 2; ++i){
+				memObj->getCoordinates(selectedCards[i]);
+				animating[memObj->coords[0]] [memObj->coords[1]] = 1 ;
+				//memObj->turn_card(selectedCards[i]);
+				++currentAnimating;
+				if(selectedCorrect ==1)
+					temp[memObj->coords[0]] [memObj->coords[1]] = 1 ;	
+
+				printf("Returned: X %d, Y%d, State: %d\n",memObj->coords[0],memObj->coords[1],memObj->getState(selectedCards[i]));
+				}
+					printf("After rereturn\n");
+				memObj->printStates();
+				//if(memObj->checkCorrect(selectedCards));
+			}else{
+				if(selectedCorrect ==1)
+				{
+					selectedCorrect = 0;
+					for(int i = 0; i < 2; ++i){
+						memObj->getCoordinates(selectedCards[i]);
+						found[memObj->coords[0]] [memObj->coords[1]] = 1 ;	
+					}
+				}
+				printf("After check\n");
+				memObj->printStates();
+				turn = 0;	
+		}
+
+	}
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  
 	glLoadIdentity();  
 
@@ -576,7 +671,7 @@ void class_openGL::display()
 
 	glTranslatef(0,0,-1);
 	glColor4f(0.9,1.0,0.8,0.9);
-
+	
 	glBegin(GL_QUADS);
 	// front face
 	glTexCoord2f(0.0f, 0.0f); glVertex3f(-20.0f, -20.0f,  0.01f);
@@ -592,7 +687,8 @@ void class_openGL::display()
 /*
 	glLightfv(GL_LIGHT0, GL_SPECULAR, light_ambient);
 	glEnable(GL_LIGHT0);*/
-
+	
+		glColor3f(1.0f,1.0f,01.0f);
 	float coordX;
 	float coordY;
 
@@ -613,7 +709,7 @@ void class_openGL::display()
 		/*	if(i==1 && j==3)
 				glRotatef(animation+=5,0,1,0);*/
 
-			//if(found[i][j]==0)
+			if(found[i][j]==0)
 				drawCard(memObj->getCardType(i,j),j,i);
 
 			/*
@@ -627,8 +723,7 @@ void class_openGL::display()
 			
 
 			if (animating[i][j]) {
-				if(rotation_progress[i][j] == 180)
-					temp[i][j] = (temp[i][j])?0:1;
+				
 				//rotation_x += 0.2f;
 				if(rotation_progress[i][j] > 180){
 					printf("ERROR, ROTATION: %d \n", rotation_progress[i][j]);
@@ -641,6 +736,9 @@ void class_openGL::display()
 
 				if(rotation_progress[i][j] >= 180){
 					rotation_progress[i][j] = animating[i][j] = 0;
+					//temp[i][j] = (temp[i][j])?0:1;
+					currentAnimating--;
+						
 				}else{
 					rotation_y[i][j] += rotating_speed;
 					rotation_progress[i][j] += rotating_speed;
@@ -653,9 +751,9 @@ void class_openGL::display()
 		}
 
 	}
-	if((temp[0][0] + temp[1][0] )==2)
+/*	if((temp[0][0] + temp[1][0] )==2)
 		found[0][0]=found[1][0]=1;
-
+*/
 	glutSwapBuffers();
 }
 
@@ -703,8 +801,10 @@ void class_openGL::mouse(int button, int state, int x, int y)
 	float y1;
 	float y2;
 
+	if(turn<2)
 	switch (button) {
 	case GLUT_LEFT_BUTTON:    /* spin scene around */
+
 		if (state == GLUT_DOWN){
 			testv = 0;
 			for(int i = 0; i < memObj->getHeight(); ++i){
@@ -721,9 +821,16 @@ void class_openGL::mouse(int button, int state, int x, int y)
 						printf("x = %d, y = %d\n", j, i);
 						printf("Calculation: cmx1 j %2.0f, cmx2 j %2.0f, cmy1 i %2.0f, cmy2 i %2.0f, wh %d, ww %d\n", clickMaskX[j][0], clickMaskX[j][1], clickMaskY[i][0], clickMaskY[i][1],  glutGet(GLUT_WINDOW_HEIGHT), glutGet(GLUT_WINDOW_WIDTH));
 						*/
+						
+
+						if(memObj->getState(i,j)==0){
 						mousePressX = j;
 						mousePressY = i;
 						mousePress = 1;
+						printf("Mouse Down, go turning card\n");
+						}
+
+						printf("Mouse Down X: %d, Y: %d, State %d, turn: %d\n", j, i, memObj->getState(i,j), turn);
 						break;
 					}
 					if(mousePress!=0)
@@ -741,8 +848,14 @@ void class_openGL::mouse(int button, int state, int x, int y)
 			//printf("Mouse Press = %d\n",mousePress);
 			if(mousePress!=0){
 				animating[mousePressY][mousePressX] = 1;
-			
+				++turn;
+
+			currentAnimating++;
+			selectedCards[turn-1] = testv-1;
 			memObj->turn_card(testv-1);
+					printf("Mouse UP curr ani %d, turn %d, state %d\n", currentAnimating, turn,memObj->getState(testv-1));
+			
+
 			//memObj->printField();
 			}
 				mousePressX=mousePressY=mousePress=0;

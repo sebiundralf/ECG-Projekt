@@ -24,7 +24,7 @@ class Memory{
 	char* cardback;			//kartenrücken
 	int MAXCARDS;			//speichert die gesamtzahl der Karten
 	int pairsfound;			//bereits gefundene Paare
-	int coords[2];
+
 
 
 
@@ -37,19 +37,23 @@ class Memory{
 	
 public:	
 
+
+		int coords[2];
 	/*Card Functions */
 
 	void getCoordinates (int cardNo);  // wandelt die Kartennummer in die Koordinaten um
 	int turn_card(int cardNo); //dreht eine karte um
 	void setState(int cardNo, int state); //ändert den State einer karte
 	int getValue(int cardNo);  // gibt den Value einer karte zurück
-	void checkCorrect(int values[2]); //vergleicht 2 karten, es werden die Kartennummern übergeben
-
+	int checkCorrect(int values[2]); //vergleicht 2 karten, es werden die Kartennummern übergeben
+	int getState(int x, int y){ return field[x][y][1];};
+	int getState(int cardNo){getCoordinates(cardNo); return getState(coords[0],coords[1]);};
 
 	
 	
 	/* UTILITY */
 
+	void printStates(); // Gibt die States des Felds aus
 	void printField(); //gibt das Feld aus
 	Memory(difficulty dif);
 	difficulty getCurrentDif(){return current_div;};

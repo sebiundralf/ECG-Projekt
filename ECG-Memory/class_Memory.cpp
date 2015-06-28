@@ -1,10 +1,9 @@
 #include "class_Memory.h"
 
-int debug =1;
+int debug =0;
 
 
 	/* Utility Functions */
-
 
 void Memory::startNewGame(difficulty dif){
 
@@ -145,6 +144,21 @@ void Memory::deleteData(){
 
 }
 
+void Memory::printStates(){
+
+	int content;
+	printf("\n FIELD: \n");
+
+	for(int i = 0; i < field_height; i++){
+		printf(" | ");
+		for(int j = 0; j < field_width; j++){
+			content = field[i][j][1];
+			printf("(%2d) %4d | ",(field_width*i)+j, content);
+		}
+		printf("\n");
+	}
+
+}
 
 void Memory::printField(){
 
@@ -214,17 +228,20 @@ int Memory::getValue(int cardNo){
 	return field[coords[0]][coords[1]][0];
 }
 
-void Memory::checkCorrect(int values[2]){
+int Memory::checkCorrect(int values[2]){
 	
 
 	if(getValue(values[0]) == getValue(values[1])){
 		for(int i=0;i<2; i++)
 			setState(values[i],2);		
 		pairsfound++;
-		
+		return 1;
+
 	}else{
 		for(int i=0;i<2; i++)
 			turn_card(values[i]);
+
+		return 0;
 	}
 
 	//printField();

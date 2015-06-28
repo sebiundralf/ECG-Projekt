@@ -26,7 +26,7 @@
 
 int main(int argc, char **argv) 
 {  
-	int sv = 0;
+	/*int sv = 0;
 	printf("Difficulty? 0 1 or 2:  ");
 	scanf("%d", &sv);
 	difficulty dif;
@@ -45,9 +45,9 @@ int main(int argc, char **argv)
 		break;
 
 	}
+	*/
 
-
-	Memory *mem = new Memory(dif);
+	Memory *mem = new Memory(HARD);
 	
 	//mem->play();
 

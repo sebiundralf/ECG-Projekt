@@ -34,26 +34,29 @@
 
 class class_openGL{
 
-		void vInitialize();
-		
+ void vInitialize();
+ static void drawBorder(float cardsize);
 
  public: 
  class_openGL(Memory * mem);
 
-static void reportGLError(const char * msg);
- static void resize(int width, int height);
+
  static void keyPressed(unsigned char key, int x, int y);
  static void drawCard(int background, int x, int y);
-static void init(int width, int height) ;
+
+
+ /* Glut Funktionen */
+ static void init(int width, int height) ;
  static void display();
  static void timer(int value);
  static void mouse(int button, int state, int x, int y);
  static void start(int argc, char **argv);
  static void mouseMotion(int x, int y);
- 
-
+ static void reportGLError(const char * msg);
+ static void resize(int width, int height);
 
 };
+
 
 
 #endif
